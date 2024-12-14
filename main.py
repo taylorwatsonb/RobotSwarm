@@ -11,17 +11,33 @@ class RobotAgent(Agent):
         self.task_location = task_location
         self.has_task = task_location is not None
         self.completed_tasks = 0
+        self.battery = 100
+        self.steps_taken = 0
+        self.charging = False
 
     def move(self):
+        if self.battery <= 20:  # Return to charging when battery is low
+            self.charging = True
+            self.has_task = False
+            self.task_location = None
+            return
+            
+        if self.charging:
+            self.battery = min(100, self.battery + 10)
+            if self.battery >= 90:
+                self.charging = False
+            return
+            
         possible_steps = self.model.grid.get_neighborhood(
             self.pos, moore=True, include_center=False
         )
-        # Filter out cells with other agents
         available_steps = [pos for pos in possible_steps 
                          if not self.model.grid.get_cell_list_contents(pos)]
         if available_steps:
             new_position = self.random.choice(available_steps)
             self.model.grid.move_agent(self, new_position)
+            self.battery -= 1
+            self.steps_taken += 1
 
     def move_towards_task(self):
         if not self.task_location:
@@ -82,7 +98,12 @@ class RobotSwarmModel(Model):
             self.add_new_task()
 
         self.datacollector = DataCollector(
-            model_reporters={"Completed_Tasks": lambda m: sum(a.completed_tasks for a in m.schedule.agents)}
+            model_reporters={
+                "Completed_Tasks": lambda m: sum(a.completed_tasks for a in m.schedule.agents),
+                "Efficiency": lambda m: sum(a.completed_tasks for a in m.schedule.agents) / 
+                                     (sum(a.steps_taken for a in m.schedule.agents) + 1),
+                "Average_Battery": lambda m: sum(a.battery for a in m.schedule.agents) / m.num_agents
+            }
         )
 
     def add_new_task(self):
@@ -123,15 +144,45 @@ if __name__ == "__main__":
     from mesa.visualization.ModularVisualization import ModularServer
 
     def agent_portrayal(agent):
-        portrayal = {"Shape": "circle", "Filled": "true", "r": 0.5}
         if isinstance(agent, RobotAgent):
-            portrayal["Color"] = "red" if agent.has_task else "blue"
-            portrayal["Layer"] = 0
+            portrayal = {
+                "Shape": "circle",
+                "Filled": "true",
+                "r": 0.5,
+                "Layer": 0,
+                "text": f"{agent.battery}%",
+                "text_color": "white"
+            }
+            if agent.charging:
+                portrayal["Color"] = "yellow"
+            elif agent.has_task:
+                portrayal["Color"] = "red"
+            else:
+                portrayal["Color"] = "blue"
+            return portrayal
+        return None
+
+    def draw_task(agent):
+        if agent is None:
+            return
+        portrayal = agent_portrayal(agent)
         return portrayal
 
-    grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)
+    # Add task portrayal
+    grid = CanvasGrid(draw_task, 20, 20, 500, 500)
+    
+    # Add charts
+    from mesa.visualization.modules import ChartModule
+    completed_tasks_chart = ChartModule([{"Label": "Completed_Tasks",
+                                         "Color": "Black"}],
+                                      data_collector_name='datacollector')
+    
+    efficiency_chart = ChartModule([{"Label": "Efficiency",
+                                   "Color": "Red"}],
+                                 data_collector_name='datacollector')
+
     server = ModularServer(RobotSwarmModel,
-                          [grid],
+                          [grid, completed_tasks_chart, efficiency_chart],
                           "Robot Swarm Model",
                           {"N": 10, "width": 20, "height": 20, "num_tasks": 15})
     
