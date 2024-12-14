@@ -2,7 +2,7 @@
 # Robot Swarm Model
 
 ## Try it Live
-Access the live simulation at: https://replit.com/@YOUR_USERNAME/simulations
+Access the live simulation at: https://replit.com/@taylorwatsonb/simulations
 
 ## Installation
 ```bash
