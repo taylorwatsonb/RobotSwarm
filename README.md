@@ -1,6 +1,21 @@
 
 # Robot Swarm Model
 
+## Try it Live
+Access the live simulation at: https://replit.com/@YOUR_USERNAME/simulations
+
+## Installation
+```bash
+git clone <your-repository-url>
+pip install -r requirements.txt
+```
+
+## Running the Model
+```bash
+python main.py
+```
+The simulation will be available at `http://YOUR_REPLIT_URL`
+
 ## Overview
 A Mesa-based robot swarm simulation modeling autonomous robots that complete tasks while managing battery levels.
 

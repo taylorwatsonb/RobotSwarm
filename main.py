@@ -187,4 +187,4 @@ if __name__ == "__main__":
                           {"N": 10, "width": 20, "height": 20, "num_tasks": 15})
     
     server.port = 8989  # Port for visualization
-    server.launch(open_browser=False)
+    server.launch(open_browser=False, port=8989, host='0.0.0.0')
