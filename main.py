@@ -119,4 +119,21 @@ def run_simulation():
     print(f"Total tasks completed: {model_data['Completed_Tasks'].iloc[-1]}")
 
 if __name__ == "__main__":
-    run_simulation()
+    from mesa.visualization.modules import CanvasGrid
+    from mesa.visualization.ModularVisualization import ModularServer
+
+    def agent_portrayal(agent):
+        portrayal = {"Shape": "circle", "Filled": "true", "r": 0.5}
+        if isinstance(agent, RobotAgent):
+            portrayal["Color"] = "red" if agent.has_task else "blue"
+            portrayal["Layer"] = 0
+        return portrayal
+
+    grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)
+    server = ModularServer(RobotSwarmModel,
+                          [grid],
+                          "Robot Swarm Model",
+                          {"N": 10, "width": 20, "height": 20, "num_tasks": 15})
+    
+    server.port = 8989  # Port for visualization
+    server.launch(open_browser=False)
