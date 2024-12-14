@@ -1,11 +1,9 @@
-
 [project]
-name = "python-template"
+name = "repl-nix-simulations"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "A Mesa-based robot swarm simulation modeling autonomous robots that complete tasks while managing battery levels. Features dynamic task allocation, battery management, and real-time visualization of swarm efficiency."
 requires-python = ">=3.11"
 dependencies = [
-    "mesa>=1.2.1",
-    "numpy>=1.24.0"
+    "mesa>=3.1.0",
+    "numpy>=2.2.0",
 ]
